@@ -50,7 +50,7 @@ We referred Image Compressed Sensing using Convolutional Neural Network by Wuzhe
 
 Research paper is referred below :-
 
-![Reference](/Static/Image%20Compressed%20Sensing%20Using%20Convolutional%20Neural%20Network%20(2).pdf)
+[Reference](/Static/Image%20Compressed%20Sensing%20Using%20Convolutional%20Neural%20Network%20(2).pdf)
 
 # Instructions to run code
 1. Clone the repository on your machine
