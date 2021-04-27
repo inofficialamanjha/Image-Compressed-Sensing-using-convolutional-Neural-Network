@@ -288,6 +288,7 @@ CSNet reconstructed images achieve high average Peak to Signal Ratio (PSNR) and 
 1. [**W. Shi, F. Jiang, S. Liu and D. Zhao, "Image Compressed Sensing Using Convolutional Neural Network," in IEEE Transactions on Image Processing, vol. 29, pp. 375-388, 2020, doi: 10.1109/TIP.2019.2928136.**](https://ieeexplore.ieee.org/document/8765626)
 2. [**BSDS500 Dataset**](https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/resources.html)
 3. [**Steve Brunton - Youtube Channel**](https://www.youtube.com/c/Eigensteve/)
+4. [**Devansh Goel  - Project Contributor**](https://github.com/dg264)
 
 # CODE RUN INSTRUCTIONS
 
