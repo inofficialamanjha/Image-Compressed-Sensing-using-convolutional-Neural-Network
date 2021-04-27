@@ -72,6 +72,7 @@ Although so many efforts have been made, the requirement of iterative computatio
 ## Compressed Sensing using Convolutional Neural Network
 
 ![Fig 4 - 1](https://user-images.githubusercontent.com/75173703/116242659-c43fc500-a783-11eb-8dd9-d31b19bf0eac.PNG)
+
 ![Fig 4 - 2](https://user-images.githubusercontent.com/75173703/116242747-dc174900-a783-11eb-917b-d1ada8ac3528.PNG)
 
 Fig 4. Shows the framework of CSNet. CSNet uses CNN to implement three functions, i.e.
@@ -90,13 +91,84 @@ In the application phase, the sampling network is used as an encoder to generate
 
 ## CSNet - Sampling Network
 
+In Block based compressed sensing, the images is first divided into non-overlapping blocks of size B x B x l, where l represents the number of channels.
+
+Then, the CS measurements are acquired using a sampling matrix ΦB of size nB x lB2. This process can be expressed as yj = ΦBxj .
+
+Intuitively, if each row of the sampling matrix ΦB is considered as a filter, we can use a convolutional layer to imitate this compressed sampling process.
+
+Since the size of each image block is B x B x l, the size of each filter in the sampling network is B x B x l, so that each filter outputs one measurement.
+
+For the sampling ratio ( M/N ), there are nB = [ (M/N) lB2 ] rows in the sampling matrix ΦB to obtain nB CS measurements.
+
+Therefore, there are nB filters of size B x B x l in this layer. The Stride of this layer is B x B for non-overlapping sampling. Furthermore, there is no bias in each filter. Also, there is no activation in this layer.
+
+Formally, the Block-based compressed sampling network (referred as S) can be expressed as an operation S (x):
+
+![Eq 6](https://user-images.githubusercontent.com/75173703/116245907-18987400-a787-11eb-860c-e5ffd7532869.PNG)
+
+where * represents convolutional operations, x is the input image, y is the CS measurement, Ws * corresponds to nB filters of support B x B x l.
+
+Intuitively, the output is composed of nB feature maps, and each column of the output is the nB measurements of an image block.
+
+In the training phase, the sampling network learns the sampling matrix with training matrix adaptively and we obtain the weights of Ws that are constrained to floating-point values.
+
 ## CSNet - Initial Reconstruction Network
+
+The image is recovered using a reconstruction network (referred as R) that contains an Initial Reconstruction network (referred as I) and a deep reconstruction network (referred as D).
+
+![Eq 7](https://user-images.githubusercontent.com/75173703/116246018-336ae880-a787-11eb-8bba-8e4ff7fcc5f1.PNG)
+
+Given the CS measurement yj of the jth block, its initial reconstruction result in x˜j = Φ˜Byj . Obviously Φ˜B is a matrix of size lB2 x nB.
+
+We use a convolutional layer with special kernel size and stride to implement the initial reconstruction process. Note Φ˜B is optimized adaptively in the network.
+
+The initial reconstruction of the image can be expressed as an operation I˜(y):
+
+![Eq 8](https://user-images.githubusercontent.com/75173703/116246102-4a113f80-a787-11eb-8434-823091e92a14.PNG)
+
+Where y is the CS measurement, and Wint is the filters. To an image block, the output of the sampling network is a 1 x 1 x nB vector, so the size of each convolutional filter in the initial reconstruction layer is 1 x 1 x nB .
+
+Therefore, Wint corresponds to lB2 filters of support of 1 x 1 x nB. We set the stride of this convolutional layer as 1 x 1 to reconstruct each block. The bias is also not present.
+
+Intuitively, each column of I˜(y) is a 1 x 1 x lB2 . However, the reconstructed block is still a vector. The traditional BCS methods will reshape and concatenate the reconstructed vectors to get an initial reconstructed image.
+
+The Combinational layer, contains a reshape function and a concatenation function, to obtain the initial reconstructed. The layer first reshapes each 1 x 1 x lB2 vector to a block, then concatenates all blocks to get an initial reconstructed image. This process is expressed as an operation I(y):
+
+x˜ = I(y) = κ ( for all image blocks γ(Image block) )
+
+where, κ is the concatenate function and γ is the reshape function.
+
+The Initial reconstruction provides a chance to optimize the entire image rather than an independent image block, which makes our method make full use of both intra-block and inter-block information for better reconstruction.
+
+Since, there is no activation layer in the initial reconstruction network, it is a linear signal reconstruction network.
 
 ## CSNet - Deep Reconstruction Network
 
+We use a residual based deep reconstruction network to implement the non-linear signal reconstruction process for better reconstruction. This network includes three operations:
+- Feature Extraction.
+- Non-Linear Mapping.
+- Feature aggregation.
+
 **Feature Extraction**
 
+Feature extraction operation is used to produce the high dimensional feature from the local receptive field. It is a convolutional layer followed with an activation layer.
+
+Since the convolutional layer operates on the initial reconstruction output, it has d filters of size f x f x l. This operation is expressed as an operation De(x˜):
+
+De(x˜) = Act ( We * x˜ + Be )
+
+Where x˜ is the initial reconstructed result obtained from the Initial reconstruction network. We Corresponds to d filters of size f x f x l, Be is the biases of size d x 1, and Act(.) is a specific activation function. We have applied the Rectified Linear Unit ( Relu, max(0,x) ) as the activation function.
+
 **Non-Linear Mapping**
+
+After getting the high dimensional image feature, the deep reconstruction network actively cascades residual block convolutional layer and activation layer, which increases the net-work non-linear and its receptive field.
+
+This non-linear mapping operation is expressed as
+
+![Eq 9](https://user-images.githubusercontent.com/75173703/116246382-9197cb80-a787-11eb-9aa3-e38c0ec168ed.PNG)
+
+Where i ∈ { 1,2,….,n }. In the residual block there is a short skip connection between the input and the output of the convolutional layer. Wim1 and Wim2 contain d filters of size f x f x d, Bim1 and Bim2 are biases of size d x 1, Act(.) is also a Relu activation function.
 
 **Feature Aggregation**
 
