@@ -94,9 +94,42 @@ In the application phase, the sampling network is used as an encoder to generate
 
 ## CSNet - Deep Reconstruction Network
 
+**Feature Extraction**
+
+**Non-Linear Mapping**
+
+**Feature Aggregation**
+
+To generate the final output, a feature aggregation operation is used to reconstruct the image from the high dimensional feature. The process is explained as an operation Da(x˜):
+
+![Eq 4](https://user-images.githubusercontent.com/75173703/116243967-19300b00-a785-11eb-9666-55b42f778a60.PNG)
+
+Where Wa corresponds to l filters of size f x f x d, and Ba is the bias of size l x 1.
+
+To accelerate the network convergence, a long ship connection between the initial reconstructed image and the output Da(x˜) of the deep reconstruction network is added. As the result the final reconstructed image is
+
+![Eq 5](https://user-images.githubusercontent.com/75173703/116244067-31078f00-a785-11eb-9c91-99da74aa59b7.PNG)
+
+
 # TRAINING ALGORITHM & METHODOLOGY
 
 ## Joint Optimization Training Algorithm
+
+To train the floating point sampling matrix, we calculate the gradient of the parameters and update each parameter normally.
+
+The training process is illustrated in the Algorithm, where λ is the learning rate, L is the number of layers, * represents convolution, and ◦ represents element-wise multiplication.
+
+For convenience, we ignore the combinational layer in the initial reconstruction network and the ReLu layer in the deep reconstruction network because they have no parameters.
+First, the filter w1 of the first convolutional layer (sampling layer) is quantized and is then used to convolve the image as shown in Step 1 .
+
+The regular forward propagation is shown in Step 2 and 3. In the backward propagation, we compute the gradients with the network prediction xL and the target x* in Step 6 to 9. Then we compute the gradients for the filter w1 .
+
+After getting the gradients of all variables, a parameter updating method is used to accumulate the parameter gradients. Other parameters are also updated regularly as shown in Step 13 to 15.
+
+When the network is well trained, we reshape each filter of size B x B x l of the sampling layer into a 1 x lB2 vector, and all these vectors form a floating-point sampling matrix ΦB of size nB x lB2.
+
+![Training Algo](https://user-images.githubusercontent.com/75173703/116243698-d66e3300-a784-11eb-80ba-1365ebb52fec.PNG)
+
 
 ## Training Methodology and loss function
 
@@ -109,7 +142,7 @@ The mean square error is adopted as the cost function of CSNet.
 
 We have two objectives to minimize:
 
-1. Initial Reconstructed Image
+1. **Initial Reconstructed Image**
 
 Loss Function:
 
@@ -120,7 +153,7 @@ Where θ and ϕ are the parameters of the sampling network and reconstruction ne
 S( xi ; θ ) are the CS measurements, and I ( S( xi ; θ ) is the initial reconstructed output with respect to image xi.
 
 
-2. Final Reconstructed Image
+2. **Final Reconstructed Image**
 
 Loss Function :
 
