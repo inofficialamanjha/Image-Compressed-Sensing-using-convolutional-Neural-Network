@@ -100,7 +100,62 @@ In the application phase, the sampling network is used as an encoder to generate
 
 ## Training Methodology and loss function
 
+The sampling and the reconstruction network introduced above form a CNN-based framework for image CS.
+
+Given the input image x, our goal is to obtain the CS measurements y using the sampling network S and then recover the original input image x accurately from y by using the reconstruction network R.
+
+The network is optimized jointly. The input and the label are all image x itself for training the CSNet. The training dataset can be represented as { xi , xi }Ki=1.
+The mean square error is adopted as the cost function of CSNet.
+
+We have two objectives to minimize:
+
+1. Initial Reconstructed Image
+
+Loss Function:
+
+![Eq 2](https://user-images.githubusercontent.com/75173703/116243316-75def600-a784-11eb-91cc-f94afa41d651.PNG)
+
+Where θ and ϕ are the parameters of the sampling network and reconstruction network needed to be trained.
+
+S( xi ; θ ) are the CS measurements, and I ( S( xi ; θ ) is the initial reconstructed output with respect to image xi.
+
+
+2. Final Reconstructed Image
+
+Loss Function :
+
+![Eq 3](https://user-images.githubusercontent.com/75173703/116243391-85f6d580-a784-11eb-8e71-b0b31af6ce79.PNG)
+
+Where R ( S( xi ; θ ) ; ϕ ) is the Final reconstructed output.
+
+Training is carried out by optimizing equations 1. And 2. Simultaneously using Adaptive moment estimation ( Adam ).
+
+It should be noted that we train the sampling network and the reconstruction network jointly, but they can be used independently.
+
+
 # TRAINING DETAILS
+
+Our Training dataset has 211 images that are the 200 training images and 11 test images from the BSDS500 (The Berkeley Segmentation Dataset and Benchmark) database. The data augmentation technology is used to increase the training dataset.
+
+The training images are prepared as 96 x 96 pixel sub-images. Finally, we have trained the model by randomly selecting
+1. 1000 sub-images
+2. 10,000 sub-images
+3. 45,000 sub-images.
+
+The Network parameters were set as follows:
+1. Block size, B = 32.
+2. Number of channels per image, l = 1.
+3. Spatial size of the kernel, f = 3.
+4. Number of feature maps in the Deep reconstruction network, d = 64.
+5. Amount of non-linear mapping layer in the Deep reconstruction net., n = 5.
+6. Sampling Ratio = 0.1.
+
+For optimizing target functions, we use Adam Optimizer.
+
+We train our model for 100 epoches, and each epoch iterates 1400 times with a batch size of 64. The learning rate of the epochs are as follows:
+1. First 50 epoches, 10-3.
+2. 51 to 80 epoches, 10-4.
+3. 81 to 100 epoches, 10-5.
 
 # EXPERIMENTAL RESULTS
 
